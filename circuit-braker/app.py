@@ -2,12 +2,7 @@ import requests
 import pybreaker
 from flask import Flask
 from flask_restful import Resource, Api
-
-app = Flask(__name__)
-api = Api(app)
-db_breaker = pybreaker.CircuitBreaker(
-    fail_max=3,
-    reset_timeout=20)
+import redis
 
 
 class Test(Resource):
@@ -23,6 +18,16 @@ class Status(Resource):
     def get(self):
         return {"FAILS": db_breaker.fail_counter, "CURRENT_STATE": db_breaker.current_state}
 
+
+redis = redis.Redis(host='redis')
+
+app = Flask(__name__)
+api = Api(app)
+db_breaker = pybreaker.CircuitBreaker(
+    fail_max=3,
+    reset_timeout=20,
+    state_storage=pybreaker.CircuitRedisStorage(pybreaker.STATE_CLOSED, redis)
+    )
 
 api.add_resource(Test, '/')
 api.add_resource(Status, '/status')
