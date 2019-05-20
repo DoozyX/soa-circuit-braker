@@ -1,0 +1,8 @@
+version: '3'
+services:
+  circuit-breaker:
+    build: ./circuit-braker
+    ports: 
+      - "3000:3000"
+  test-service:
+    build: ./test-service

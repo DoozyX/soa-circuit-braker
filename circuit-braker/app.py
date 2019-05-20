@@ -30,7 +30,7 @@ api.add_resource(Status, '/status')
 
 @db_breaker
 def test():
-    r = requests.get('http://testsoa:5000')
+    r = requests.get('http://test-service:5000')
     print(r.status_code)
     print(r.json())
 
