@@ -3,25 +3,26 @@ import pybreaker
 from flask import Flask
 from flask_restful import Resource, Api
 import redis
+import logging
 
 
 class DBListener(pybreaker.CircuitBreakerListener):
     "Listener used by circuit breakers that execute database operations."
 
     def before_call(self, cb, func, *args, **kwargs):
-        print("Called before the circuit breaker `cb` calls `func`.")
+        logging.info("Called before the circuit breaker `cb` calls `func`.")
         pass
 
     def state_change(self, cb, old_state, new_state):
-        print("Called when the circuit breaker `cb` state changes.")
+        logging.info("Called when the circuit breaker `cb` state changes.")
         pass
 
     def failure(self, cb, exc):
-        print("Called when a function invocation raises a system error.")
+        logging.info("Called when a function invocation raises a system error.")
         pass
 
     def success(self, cb):
-        print("Called when a function invocation succeeds.")
+        logging.info("Called when a function invocation succeeds.")
         pass
 
 
@@ -46,19 +47,21 @@ api = Api(app)
 api.add_resource(Test, '/')
 api.add_resource(Status, '/status')
 
+logging.basicConfig(level=logging.INFO)
+
 db_breaker = pybreaker.CircuitBreaker(
     fail_max=3,
     reset_timeout=20,
     state_storage=pybreaker.CircuitRedisStorage(pybreaker.STATE_CLOSED, redis),
     listeners=[DBListener()]
-    )
+)
 
 
 @db_breaker
 def test():
     r = requests.get('http://test-service:5000')
-    print(r.status_code)
-    print(r.json())
+    logging.info(r.status_code)
+    logging.info(r.json())
 
 
 if __name__ == '__main__':
